@@ -10,6 +10,10 @@
 # pip install xmltodict
 #
 #
+# Option #2 (nick's way, automatically creates virtualenv and requirements for you):
+# ./Palo-Alto-Firewall-Logs.sh -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
+#
+#
 # Example usage:
 #  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
 #  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(url contains google.com)"
@@ -96,15 +100,16 @@ class PaloAltoFirewall(object):
             log_data = []
             for entry in entries:
                 line = ""
-                log = {'firewall': host}
+                log = {'firewall': hostname,
+                       'query': query}
                 for p in params:
                     log[p] = entry[p]
                     if p in entry:
                         line += "{}='{}' ".format(p, entry[p])
                     else:
                         line += "{}=''".format(p)
-                #print (line)
                 log_data.append(log)
+
             return log_data
 
     def run_traffic(self, query):
@@ -158,11 +163,12 @@ class PaloAltoFirewall(object):
         matching_rules = []
         for rule in security_rules:
             if rule['@name'] == rule_name:
+                rule['firewall'] = firewall
                 matching_rules.append(rule)
 
         output_rules = {'logs': log_group['logs'],
-                        'rules': matching_rules}
-        print json.dumps(output_rules, indent=4, sort_keys=True)
+                        'rule_configs': matching_rules}
+        return output_rules
 
     def print_paths(self, data, path=None):
         for k, v in data.items():
@@ -180,9 +186,6 @@ if __name__ == '__main__':
     cli = Cli()
     args = cli.parse()
     client = PaloAltoFirewall(args)
-
-    # client.get_config()
-    # exit(0)
 
     log_data = []
     if args.filename:
@@ -209,9 +212,13 @@ if __name__ == '__main__':
                 if dst_port:
                     query += " and port.dst eq {}".format(dst_port)
 
-                log_data = client.run_query('(' + query + ')')
+                results = client.run_query('(' + query + ')')
+                if results:
+                    log_data.extend(results)
     else:
-        log_data = client.run_query(args.query)
+        results = client.run_query(args.query)
+        if results:
+            log_data.extend(results)
 
     # group all of the logs together by their rule name, so we only query once
     grouped_logs = {}
@@ -223,5 +230,9 @@ if __name__ == '__main__':
 
     # find the rule in the config for each rule that we found
     # in our logs
+    output_rules = []
     for rule_name, log_group in grouped_logs.items():
-        client.find_config_security_rule(rule_name, log_group)
+        rule = client.find_config_security_rule(rule_name, log_group)
+        output_rules.append(rule)
+
+    print json.dumps(output_rules, indent=4)
