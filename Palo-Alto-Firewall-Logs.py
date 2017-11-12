@@ -8,6 +8,9 @@
 # pip install requests
 # pip install xmltodict
 #
+# On a Mac (OSX):
+# sudo python -m pip install "requests[security]"
+# sudo python3 -m pip install "requests[security]"
 #
 # Option #2 (nick's way, automatically creates virtualenv and requirements for you):
 # ./Palo-Alto-Firewall-Logs.sh -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
