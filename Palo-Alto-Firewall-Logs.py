@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 # Setup instructions (tested on python 2.7):
 #
 # pip install virtualenv
@@ -9,14 +8,16 @@
 # pip install requests
 # pip install xmltodict
 #
+#
+# Option #2 (nick's way, automatically creates virtualenv and requirements for you):
+# ./Palo-Alto-Firewall-Logs.sh -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
+#
+#
 # Example usage:
 #  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
 #  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(url contains google.com)"
 #  # read queries from CSV
 #  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --filename ./input_data.csv
-#
-# Option #2 (nick's way, automatically creates virtualenv and requirements for you):
-# ./Palo-Alto-Firewall-Logs.sh -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
 
 import argparse
 import csv
@@ -29,6 +30,7 @@ import xmltodict
 # silence SSL warnings
 urllib3.disable_warnings()
 requests.packages.urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Cli:
     def parse(self):
@@ -65,7 +67,7 @@ class PaloAltoFirewall(object):
         results_dict = self.get(session, full_url)
         return results_dict
 
-    def _run_query(self, endpoint, params):
+    def _run_query(self, endpoint, params, query):
         for host in self.args.hostname:
             hostname = host
             url = "https://{0}".format(hostname)
@@ -111,16 +113,16 @@ class PaloAltoFirewall(object):
             return log_data
 
     def run_traffic(self, query):
-        query = urllib.quote_plus(query)
-        endpoint = "/api/?type=log&log-type=traffic&query={0}".format(query)
+        quoted_query = urllib.quote_plus(query)
+        endpoint = "/api/?type=log&log-type=traffic&query={0}".format(quoted_query)
         params = ['src','dst', 'dport', 'proto', 'app', 'rule', 'action']
-        return self._run_query(endpoint, params)
+        return self._run_query(endpoint, params, query)
 
     def run_url(self, query):
-        query = urllib.quote_plus(query)
-        endpoint = "/api/?type=log&log-type=url&query={0}".format(query)
+        quoted_query = urllib.quote_plus(query)
+        endpoint = "/api/?type=log&log-type=url&query={0}".format(quoted_query)
         params = ['src','dst', 'dport', 'proto', 'app', 'misc', 'action']
-        return self._run_query(endpoint, params)
+        return self._run_query(endpoint, params, query)
 
     def run_query(self, query):
         if 'url' in query:
