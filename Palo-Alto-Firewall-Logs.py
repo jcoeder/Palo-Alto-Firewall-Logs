@@ -124,6 +124,14 @@ class PaloAltoFirewall(object):
         params = ['src','dst', 'dport', 'proto', 'app', 'misc', 'action']
         return self._run_query(endpoint, params, query)
 
+# run the test command via the api
+# strict formatting - must be IP address, cannot be subnet.
+# must define protocol 1 for ICMP, 6 for TCP, 17 for UDP
+#    def run_test (self, query):
+#        quoted_query = urllib.quoted_plus(query)
+#        endpoint = "/api/?type=op&cmd=<test><security-policy-match><source>{0}</source><destination>{1}</destination><destination-port>{2}</destination-port><protocol>{3}</protocol></security-policy-match></test></operations></request>"
+#        print (endpoint)
+
     def run_query(self, query):
         if 'url' in query:
             print "running url query"
