@@ -7,7 +7,11 @@
 # pip install requests
 # pip install xmltodict
 #
-#
 # Example usage:
-#  ./firewall_logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
-#  ./firewall_logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(url contains google.com)"
+#  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
+#  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --query "(url contains google.com)"
+#  # read queries from CSV
+#  ./Palo-Alto-Firewall-Logs.py -H 172.16.216.20 -U admin -P PASSWORD --filename ./input_data.csv
+#
+# Option #2 (Nick's way, automatically creates virtualenv and requirements for you):
+# ./Palo-Alto-Firewall-Logs.sh -H 172.16.216.20 -U admin -P PASSWORD --query "(addr in 8.8.8.8)"
